@@ -1,0 +1,4 @@
+# Ejemplo de variables de entorno para desarrollo local
+# Copia este archivo a .dev.vars y configura tus valores
+
+# MY_VARIABLE=my_value

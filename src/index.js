@@ -137,6 +137,16 @@ function getHTML() {
         button:hover {
             background: #555;
         }
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        .clear-btn {
+            background: #333;
+        }
+        .clear-btn:hover {
+            background: #3a3a3a;
+        }
         .result {
             margin-top: 20px;
             padding: 20px;
@@ -158,6 +168,23 @@ function getHTML() {
             color: #999;
             font-size: 14px;
         }
+        .copy-btn {
+            margin-top: 12px;
+            padding: 8px 16px;
+            background: #444;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .copy-btn:hover {
+            background: #555;
+        }
+        .copy-btn.copied {
+            background: #4a9d5f;
+        }
         .api-info {
             margin-top: 25px;
             padding: 12px;
@@ -178,15 +205,19 @@ function getHTML() {
         <h1>Calculadora de Porcentajes</h1>
         
         <div class="input-group">
-            <input type="number" id="percentage" placeholder="%" value="20">
+            <input type="number" id="percentage" placeholder="%">
             <span class="label">% de</span>
-            <input type="number" id="value" placeholder="Valor" value="100">
+            <input type="number" id="value" placeholder="Valor">
         </div>
-        <button onclick="calculate()">Calcular</button>
+        <div class="button-group">
+            <button onclick="calculate()">Calcular</button>
+            <button class="clear-btn" onclick="clearInputs()">Limpiar</button>
+        </div>
 
         <div class="result" id="result">
             <div class="result-value" id="resultValue"></div>
             <div class="result-explanation" id="resultExplanation"></div>
+            <button class="copy-btn" id="copyBtn" onclick="copyResult()">Copiar resultado</button>
         </div>
 
     </div>
@@ -206,7 +237,10 @@ function getHTML() {
                 const data = await response.json();
 
                 if (data.success) {
-                    document.getElementById('resultValue').textContent = data.result.toFixed(2);
+                    // Formatear el resultado sin decimales si son .00
+                    const formattedResult = data.result % 1 === 0 ? data.result.toString() : data.result.toFixed(2);
+                    document.getElementById('resultValue').textContent = formattedResult;
+                    document.getElementById('resultValue').dataset.value = data.result;
                     document.getElementById('resultExplanation').textContent = data.explanation;
                     document.getElementById('result').classList.add('show');
                 } else {
@@ -217,16 +251,37 @@ function getHTML() {
             }
         }
 
+        async function copyResult() {
+            const resultValue = document.getElementById('resultValue').dataset.value;
+            const copyBtn = document.getElementById('copyBtn');
+            
+            try {
+                await navigator.clipboard.writeText(resultValue);
+                copyBtn.textContent = '¡Copiado!';
+                copyBtn.classList.add('copied');
+                
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copiar resultado';
+                    copyBtn.classList.remove('copied');
+                }, 1000);
+            } catch (error) {
+                alert('Error al copiar: ' + error.message);
+            }
+        }
+
+        function clearInputs() {
+            document.getElementById('percentage').value = '';
+            document.getElementById('value').value = '';
+            document.getElementById('result').classList.remove('show');
+            document.getElementById('percentage').focus();
+        }
+
         document.querySelectorAll('input').forEach(input => {
             input.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     calculate();
                 }
             });
-        });
-
-        window.addEventListener('load', () => {
-            calculate();
         });
     </script>
 </body>
